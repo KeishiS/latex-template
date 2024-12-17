@@ -42,7 +42,7 @@ jobs:
       - name: Setup
         run: |
           apt update -qq && apt install -y -qq gh git
-          git config --global --add safe.directory /__w/test-latexdiff/test-latexdiff
+          git config --global --add safe.directory /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}
       - name: Checkout
         uses: actions/checkout@v4
       - name: Setup ltex-cli-plus
