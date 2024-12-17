@@ -1,0 +1,14 @@
+{
+  "lsp": {
+    "ltex": {
+      "settings": {
+        "ltex": {
+          "dictionary": {
+            "en-US": ["KeishiS"]
+          },
+          "checkFrequency": "save"
+        }
+      }
+    }
+  }
+}

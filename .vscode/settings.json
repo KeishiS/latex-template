@@ -1,0 +1,10 @@
+{
+    "ltex.dictionary": {
+        "en-US": [
+            "KeishiS"
+        ]
+    },
+    "ltex.checkFrequency": "save",
+    "ltex.trace.server": "messages",
+    // "texlab.build.onSave": true
+}

@@ -1,0 +1,69 @@
+name: LaTeX
+
+env:
+  target: index.tex
+
+on:
+  pull_request:
+    paths:
+      - "index.tex"
+
+jobs:
+  generate-diff:
+    runs-on: ubuntu-latest
+    container:
+      image: leplusorg/latex:latest
+      options: --user root
+    steps:
+      - name: Setup
+        run: apk update && apk add git patch
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: main-branch
+      - name: Show list
+        run: ls
+      - name: Generate Diff
+        run: |
+          latexdiff main-branch/${target} ${target} > diff.tex
+          latexmk
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          path: build/diff.pdf
+  check-type:
+    runs-on: ubuntu-latest
+    container:
+      image: bitnami/java
+    steps:
+      - name: Setup
+        run: |
+          apt update -qq && apt install -y -qq gh git
+          git config --global --add safe.directory /__w/test-latexdiff/test-latexdiff
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup ltex-cli-plus
+        run: |
+          wget https://github.com/ltex-plus/ltex-ls-plus/releases/download/18.3.0/ltex-ls-plus-18.3.0-linux-x64.tar.gz -q
+          tar -zxf ltex-ls-plus-18.3.0-linux-x64.tar.gz
+      - name: Check tex-file
+        continue-on-error: true
+        run: |
+          ./ltex-ls-plus-18.3.0/bin/ltex-cli-plus ${target} 2> /dev/null > typos
+      - name: Check Output
+        id: check_output
+        run: |
+          size=$(stat -c %s typos)
+          echo "size=$size" >> $GITHUB_OUTPUT
+      - name: Post Comment
+        if: ${{ steps.check_output.outputs.size > 5 }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          sed -i '1s/^/\`\`\`\n/' typos
+          echo "\`\`\`" >> typos
+          gh pr comment ${{ github.event.number }} --body-file typos
